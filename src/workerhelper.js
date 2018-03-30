@@ -1,9 +1,9 @@
-var window = window || {},
+var win = window || {},
     TARGET = typeof Symbol === 'undefined' ? '__target' : Symbol(),
     SCRIPT_TYPE = 'application/javascript',
-    BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder,
-    URL = window.URL || window.webkitURL || (URL && URL.msURL),
-    Worker = window.Worker;
+    BlobBuilder = win.BlobBuilder || win.WebKitBlobBuilder || win.MozBlobBuilder || win.MSBlobBuilder,
+    URL = win.URL || win.webkitURL || (URL && URL.msURL),
+    Worker = win.Worker;
 
 /**
  * Returns a wrapper around Web Worker code that is constructible.
