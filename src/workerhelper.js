@@ -1,4 +1,4 @@
-var win = window || {},
+var win = typeof window !== 'undefined' ? window : {},
     TARGET = typeof Symbol === 'undefined' ? '__target' : Symbol(),
     SCRIPT_TYPE = 'application/javascript',
     BlobBuilder = win.BlobBuilder || win.WebKitBlobBuilder || win.MozBlobBuilder || win.MSBlobBuilder,
