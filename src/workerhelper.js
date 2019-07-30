@@ -3,7 +3,38 @@ var win = typeof window !== 'undefined' ? window : {},
     SCRIPT_TYPE = 'application/javascript',
     BlobBuilder = win.BlobBuilder || win.WebKitBlobBuilder || win.MozBlobBuilder || win.MSBlobBuilder,
     URL = win.URL || win.webkitURL || (URL && URL.msURL),
+    workerTestRun = false,
     Worker = win.Worker;
+
+
+function runWorkerTest () {
+    if (workerTestRun) {
+        return;
+    }
+// Test Worker capabilities
+    if (Worker) {
+        var testWorker,
+            objURL = createSourceObject('self.onmessage = function () {}'),
+            testArray = new Uint8Array(1);
+
+        try {
+            testWorker = new Worker(objURL);
+
+            // Native browser on some Samsung devices throws for transferables, let's detect it
+            testWorker.postMessage(testArray, [testArray.buffer]);
+        }
+        catch (e) {
+            Worker = null;
+        }
+        finally {
+            URL.revokeObjectURL(objURL);
+            if (testWorker) {
+                testWorker.terminate();
+            }
+        }
+    }
+    workerTestRun = true;
+};
 
 /**
  * Returns a wrapper around Web Worker code that is constructible.
@@ -14,6 +45,7 @@ var win = typeof window !== 'undefined' ? window : {},
  * @param { Function }  fn          Function wrapping the code of the worker
  */
 export default function shimWorker (filename, fn) {
+    runWorkerTest();
     return function ShimWorker (forceFallback) {
         var o = this;
 
@@ -47,28 +79,6 @@ export default function shimWorker (filename, fn) {
     };
 };
 
-// Test Worker capabilities
-if (Worker) {
-    var testWorker,
-        objURL = createSourceObject('self.onmessage = function () {}'),
-        testArray = new Uint8Array(1);
-
-    try {
-        testWorker = new Worker(objURL);
-
-        // Native browser on some Samsung devices throws for transferables, let's detect it
-        testWorker.postMessage(testArray, [testArray.buffer]);
-    }
-    catch (e) {
-        Worker = null;
-    }
-    finally {
-        URL.revokeObjectURL(objURL);
-        if (testWorker) {
-            testWorker.terminate();
-        }
-    }
-}
 
 function createSourceObject(str) {
     try {

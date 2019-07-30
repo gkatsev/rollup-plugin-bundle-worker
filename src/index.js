@@ -2,7 +2,8 @@ var fs = require('fs'),
     path = require('path'),
     paths = new Map();
 
-module.exports = function () {
+module.exports = function (userOptions) {
+    userOptions = userOptions || {};
     return {
         resolveId: function (importee, importer) {
             if (importee === 'rollup-plugin-bundle-worker') {
@@ -26,9 +27,13 @@ module.exports = function () {
                 return;
             }
 
+            const lazy = userOptions.lazy ? '() =>' : '';
+
+            exportLine = `export default ${lazy} new shimWorker(${JSON.stringify(paths.get(id))}, function (window, document) {`,
+
             var code = [
                     `import shimWorker from 'rollup-plugin-bundle-worker';`,
-                    `export default new shimWorker(${JSON.stringify(paths.get(id))}, function (window, document) {`,
+                    exportLine,
                     `var self = this;`,
                     fs.readFileSync(id, 'utf-8'),
                     `\n});`
