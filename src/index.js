@@ -27,17 +27,28 @@ module.exports = function (userOptions) {
                 return;
             }
 
-            const lazy = userOptions.lazy ? '() =>' : '';
+            var code = `
+                import shimWorker from 'rollup-plugin-bundle-worker';
+                const workerFunction = function(window, document) {
+                  var self = this;
+                  ${fs.readFileSync(id, 'utf-8')}
+                };`;
 
-            exportLine = `export default ${lazy} new shimWorker(${JSON.stringify(paths.get(id))}, function (window, document) {`,
+            const newShimWorker = `new shimWorker(${JSON.stringify(paths.get(id))}, workerFunction);`;
 
-            var code = [
-                    `import shimWorker from 'rollup-plugin-bundle-worker';`,
-                    exportLine,
-                    `var self = this;`,
-                    fs.readFileSync(id, 'utf-8'),
-                    `\n});`
-                ].join('\n');
+            if (userOptions.lazy) {
+                code += `
+                let WorkerObject;
+                export default function() {
+                    WorkerObject = WorkerObject || ${newShimWorker};
+                    return new WorkerObject();
+                }`;
+            } else {
+                code += `
+                const WorkerObject = ${newShimWorker};
+                export default WorkerObject;
+                `;
+            }
 
             return code;
         }
